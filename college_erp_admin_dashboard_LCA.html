@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIML College ERP - Admin</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            900: '#0A192F', // Navy Dark
+                            800: '#112240', // Navy Lighter
+                            600: '#2563EB', // Blue Primary
+                            100: '#DBEAFE', // Blue Light
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Custom input styles for marks table */
+        .mark-input {
+            width: 60px;
+            padding: 4px;
+            border: 1px solid #E2E8F0;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .mark-input:focus {
+            outline: none;
+            border-color: #2563EB;
+            box-shadow: 0 0 0 2px #DBEAFE;
+        }
+        
+        /* Toast Animation */
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        .toast-enter { animation: slideIn 0.3s ease-out forwards; }
+        .toast-exit { animation: fadeOut 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased h-screen overflow-hidden flex flex-col">
+
+    <!-- 1. LOGIN SCREEN -->
+    <div id="view-login" class="absolute inset-0 z-50 bg-slate-50 flex items-center justify-center">
+        <div class="bg-white p-8 rounded-xl shadow-xl w-full max-w-md border border-slate-100">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-brand-900 text-white rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <i class="ph ph-graduation-cap text-4xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-brand-900">AIML College ERP</h1>
+                <p class="text-slate-500 text-sm mt-1">Academic Management System</p>
+            </div>
+            
+            <form id="login-form" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Username</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="ph ph-user text-slate-400"></i>
+                        </div>
+                        <input type="text" id="login-username" value="admin" class="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-brand-600 focus:border-brand-600 text-sm" placeholder="Enter username">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="ph ph-lock text-slate-400"></i>
+                        </div>
+                        <input type="password" id="login-password" value="admin123" class="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-brand-600 focus:border-brand-600 text-sm" placeholder="Enter password">
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input id="remember-me" type="checkbox" class="h-4 w-4 text-brand-600 focus:ring-brand-600 border-gray-300 rounded">
+                        <label for="remember-me" class="ml-2 block text-sm text-slate-600">Remember me</label>
+                    </div>
+                    <div class="text-sm">
+                        <a href="#" class="font-medium text-brand-600 hover:text-brand-500">Forgot password?</a>
+                    </div>
+                </div>
+                
+                <button type="submit" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-brand-900 hover:bg-brand-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-900 transition-colors">
+                    Sign in to Dashboard
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APPLICATION LAYOUT -->
+    <div id="app-layout" class="hidden flex h-screen w-full bg-slate-50">
+        
+        <!-- Sidebar -->
+        <aside class="w-64 bg-brand-900 text-slate-300 flex flex-col transition-all duration-300 z-20 shadow-xl relative">
+            <div class="h-16 flex items-center px-6 border-b border-brand-800">
+                <i class="ph ph-graduation-cap text-2xl text-white mr-3"></i>
+                <span class="text-lg font-bold text-white tracking-wide">AIML ERP</span>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto py-4 hide-scroll">
+                <nav class="space-y-1 px-3">
+                    <a href="#" data-route="dashboard" class="nav-item group flex items-center px-3 py-2.5 text-sm font-medium rounded-md hover:bg-brand-800 hover:text-white transition-colors bg-brand-800 text-white">
+                        <i class="ph ph-squares-four text-lg mr-3"></i> Dashboard
+                    </a>
+                    <a href="#" data-route="students" class="nav-item group flex items-center px-3 py-2.5 text-sm font-medium rounded-md hover:bg-brand-800 hover:text-white transition-colors">
+                        <i class="ph ph-users text-lg mr-3"></i> Students
+                    </a>
+                    <a href="#" data-route="subjects" class="nav-item group flex items-center px-3 py-2.5 text-sm font-medium rounded-md hover:bg-brand-800 hover:text-white transition-colors">
+                        <i class="ph ph-books text-lg mr-3"></i> Subjects
+                    </a>
+                    <a href="#" data-route="marks" class="nav-item group flex items-center px-3 py-2.5 text-sm font-medium rounded-md hover:bg-brand-800 hover:text-white transition-colors">
+                        <i class="ph ph-exam text-lg mr-3"></i> Marks Management
+                    </a>
+                    <a href="#" data-route="performance" class="nav-item group flex items-center px-3 py-2.5 text-sm font-medium rounded-md hover:bg-brand-800 hover:text-white transition-colors">
+                        <i class="ph ph-chart-line-up text-lg mr-3"></i> Overall Performance
+                    </a>
+                    <a href="#" data-route="missing-marks" class="nav-item group flex items-center px-3 py-2.5 text-sm font-medium rounded-md hover:bg-brand-800 hover:text-white transition-colors"><i class="ph ph-clipboard-text text-lg mr-3"></i> Missing Marks</a>
+                    <a href="#" data-route="at-risk" class="nav-item group flex items-center px-3 py-2.5 text-sm font-medium rounded-md hover:bg-brand-800 hover:text-white transition-colors"><i class="ph ph-warning-circle text-lg mr-3"></i> At-risk Students</a>
+                    <a href="#" data-route="attendance" class="nav-item group flex items-center px-3 py-2.5 text-sm font-medium rounded-md hover:bg-brand-800 hover:text-white transition-colors"><i class="ph ph-calendar-check text-lg mr-3"></i> Attendance</a>
+                </nav>
+            </div>
+            
+            <div class="p-4 border-t border-brand-800">
+                <a href="#" id="btn-logout" class="group flex items-center px-3 py-2 text-sm font-medium rounded-md text-slate-400 hover:text-white hover:bg-brand-800 transition-colors w-full">
+                    <i class="ph ph-sign-out text-lg mr-3"></i> Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Wrapper -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            
+            <!-- Header -->
+            <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-10 shadow-sm">
+                <div class="flex items-center">
+                    <h2 id="header-title" class="text-xl font-semibold text-brand-900">Dashboard</h2>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="relative hidden md:block">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="ph ph-magnifying-glass text-slate-400"></i>
+                        </div>
+                        <input type="text" class="block w-64 pl-10 pr-3 py-1.5 border border-slate-300 rounded-full text-sm focus:ring-brand-600 focus:border-brand-600 bg-slate-50" placeholder="Search...">
+                    </div>
+                    
+                    <button class="text-slate-400 hover:text-slate-600 relative">
+                        <i class="ph ph-bell text-xl"></i>
+                        <span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
+                    </button>
+                    
+                    <div class="h-8 w-8 rounded-full bg-brand-100 flex items-center justify-center text-brand-600 font-bold border border-brand-200 cursor-pointer">
+                        A
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Scrollable Area -->
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50 p-6" id="main-content">
+<div class="flex justify-between items-center mb-4"><span id="data-status" class="text-sm text-slate-500" role="status">Connecting…</span><button id="refresh-data" class="bg-white border border-slate-300 px-3 py-2 rounded-md text-sm">Refresh data</button></div>
+<div class="mb-4 text-xs text-slate-500">Averages use entered results for each student’s semester. Missing results remain pending. Pass rate includes only fully assessed students; every subject requires 40/100. Rankings with missing results are provisional. Subjects are shared across courses in the same semester.</div>
+<div id="data-error" class="hidden bg-red-50 border border-red-200 rounded-lg p-5 mb-4" role="alert"><strong>Unable to load database records</strong><p id="data-error-message" class="mt-2"></p><p class="mt-2 text-sm">Start the backend, then click Refresh data. Sample records are never substituted.</p></div>
+                
+                <!-- 2. DASHBOARD VIEW -->
+                <div id="view-dashboard" class="app-view space-y-6">
+                    <!-- Stat Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-5 flex items-center">
+                            <div class="h-12 w-12 rounded-lg bg-blue-50 flex items-center justify-center text-brand-600 mr-4">
+                                <i class="ph ph-users text-2xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Total Students</p>
+                                <p class="text-2xl font-bold text-slate-800" id="dash-total-students">0</p>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-5 flex items-center">
+                            <div class="h-12 w-12 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 mr-4">
+                                <i class="ph ph-books text-2xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Total Subjects</p>
+                                <p class="text-2xl font-bold text-slate-800" id="dash-total-subjects">0</p>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-5 flex items-center">
+                            <div class="h-12 w-12 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 mr-4">
+                                <i class="ph ph-chart-polar text-2xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Class Average</p>
+                                <p class="text-2xl font-bold text-slate-800" id="dash-class-avg">0%</p>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-5 flex items-center">
+                            <div class="h-12 w-12 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600 mr-4">
+                                <i class="ph ph-check-circle text-2xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Pass Percentage</p>
+                                <p class="text-2xl font-bold text-slate-800" id="dash-pass-pct">0%</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts & Performance -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Chart -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-5 lg:col-span-2">
+                            <h3 class="text-base font-semibold text-slate-800 mb-4">Subject Performance Comparison</h3>
+                            <div class="h-64 w-full">
+                                <canvas id="dashboardChart"></canvas>
+                            </div>
+                        </div>
+                        <!-- Subject Summary -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-5">
+                            <h3 class="text-base font-semibold text-slate-800 mb-4">Subject Averages</h3>
+                            <div class="space-y-4" id="dash-subject-list">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <button onclick="navigateTo('missing-marks')" class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm text-left hover:border-amber-300"><p class="text-xs uppercase font-semibold text-amber-700">Missing marks</p><p id="teacher-missing-count" class="text-3xl font-bold mt-2">—</p><p id="teacher-missing-caption" class="text-xs text-slate-500 mt-1"></p><span class="block text-sm text-brand-600 mt-3">Open checklist →</span></button>
+                        <button onclick="navigateTo('at-risk')" class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm text-left hover:border-red-300"><p class="text-xs uppercase font-semibold text-red-700">Students needing attention</p><p id="teacher-risk-count" class="text-3xl font-bold mt-2">—</p><p id="teacher-risk-caption" class="text-xs text-slate-500 mt-1"></p><span class="block text-sm text-brand-600 mt-3">Review students →</span></button>
+                        <button onclick="navigateTo('attendance')" class="bg-brand-900 text-white rounded-xl p-5 shadow-sm text-left hover:bg-brand-800"><p class="text-xs uppercase font-semibold text-blue-200">Class attendance</p><p class="text-xl font-semibold mt-2">Take today's register</p><p class="text-xs text-slate-300 mt-1">Course, semester, subject and date</p><span class="block text-sm text-blue-200 mt-3">Open attendance →</span></button>
+                    </div>
+                    <!-- Top Students Table -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div class="px-5 py-4 border-b border-slate-100">
+                            <h3 class="text-base font-semibold text-slate-800">Top Performing Students</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-slate-600">
+                                <thead class="text-xs text-slate-500 uppercase bg-slate-50">
+                                    <tr>
+                                        <th class="px-5 py-3">Rank</th>
+                                        <th class="px-5 py-3">Roll Number</th>
+                                        <th class="px-5 py-3">Student Name</th>
+                                        <th class="px-5 py-3 text-center">Overall %</th>
+                                        <th class="px-5 py-3 text-center">Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dash-top-students" class="divide-y divide-slate-100">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. STUDENTS VIEW -->
+                <div id="view-students" class="app-view hidden space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <div class="relative">
+                                <i class="ph ph-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                                <input type="text" id="filter-student-search" class="pl-9 pr-3 py-1.5 border border-slate-300 rounded-md text-sm focus:ring-brand-600 focus:border-brand-600" placeholder="Search name/roll...">
+                            </div>
+                            <select id="filter-student-course" class="py-1.5 pl-3 pr-8 border border-slate-300 rounded-md text-sm focus:ring-brand-600 focus:border-brand-600">
+                                <option value="">All Courses</option>
+                                <option value="AIML">AIML</option>
+                                <option value="CSE">CSE</option>
+                            </select>
+                            <select id="filter-student-sem" class="py-1.5 pl-3 pr-8 border border-slate-300 rounded-md text-sm focus:ring-brand-600 focus:border-brand-600">
+                                <option value="">All Sems</option>
+                                <option value="1">Sem 1</option>
+                                <option value="2">Sem 2</option>
+                                <option value="3">Sem 3</option>
+                            <option value="4">Sem 4</option><option value="5">Sem 5</option><option value="6">Sem 6</option><option value="7">Sem 7</option><option value="8">Sem 8</option></select>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <input id="student-csv-input" type="file" accept=".csv,text/csv" class="hidden" aria-label="Import student CSV">
+                            <button onclick="downloadStudentTemplate()" class="border border-slate-300 px-3 py-2 rounded-md text-sm hover:bg-slate-50">CSV Template</button>
+                            <button id="import-students-button" onclick="el('student-csv-input').click()" class="border border-slate-300 px-3 py-2 rounded-md text-sm hover:bg-slate-50 disabled:opacity-50"><i class="ph ph-upload-simple mr-1"></i> Import CSV</button>
+                            <button id="export-students-button" onclick="exportStudentsCsv()" class="border border-slate-300 px-3 py-2 rounded-md text-sm hover:bg-slate-50 disabled:opacity-50"><i class="ph ph-download-simple mr-1"></i> Export All</button>
+                            <button onclick="openModal('modal-add-student')" class="bg-brand-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-brand-800"><i class="ph ph-plus mr-1"></i> Add Student</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-slate-600">
+<thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-100">
+    <tr>
+        <th class="px-5 py-3">S.No</th>
+        <th class="px-5 py-3">Roll Number</th>
+        <th class="px-5 py-3">Name</th>
+        <th class="px-5 py-3">Course</th>
+        <th class="px-5 py-3">Sem</th>
+        <th class="px-5 py-3">Email</th>
+        <th class="px-5 py-3">Status</th>
+        <th class="px-5 py-3 text-right">Actions</th>
+    </tr>
+</thead>                                <tbody id="students-table-body" class="divide-y divide-slate-100">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. STUDENT PROFILE VIEW -->
+                <div id="view-student-profile" class="app-view hidden space-y-6">
+                    <div class="flex items-center space-x-3 mb-2">
+                        <button onclick="navigateTo('students')" class="text-slate-500 hover:text-brand-600 bg-white border border-slate-200 p-1.5 rounded-md shadow-sm transition">
+                            <i class="ph ph-arrow-left text-lg"></i>
+                        </button>
+                        <h3 class="text-lg font-semibold text-slate-800">Student Profile</h3>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Profile Card -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col items-center text-center">
+                            <div class="h-24 w-24 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-3xl font-bold mb-4">
+                                <span id="profile-initial"></span>
+                            </div>
+                            <h2 class="text-xl font-bold text-slate-800" id="profile-name">Student Name</h2>
+                            <p class="text-sm text-slate-500 mb-4" id="profile-roll">Roll Number</p>
+                            
+                            <div class="w-full space-y-3 text-sm text-left mt-2">
+                                <div class="flex justify-between border-b border-slate-50 pb-2">
+                                    <span class="text-slate-500">Course</span>
+                                    <span class="font-medium text-slate-800" id="profile-course">-</span>
+                                </div>
+                                <div class="flex justify-between border-b border-slate-50 pb-2">
+                                    <span class="text-slate-500">Semester</span>
+                                    <span class="font-medium text-slate-800" id="profile-sem">-</span>
+                                </div>
+                                <div class="flex justify-between border-b border-slate-50 pb-2">
+                                    <span class="text-slate-500">Email</span>
+                                    <span class="font-medium text-slate-800" id="profile-email">-</span>
+                                </div>
+                                <div class="flex justify-between pb-2">
+                                    <span class="text-slate-500">Status</span>
+                                    <span class="font-medium" id="profile-status">-</span>
+                                </div>
+                            </div>
+                            <div class="mt-6 flex gap-2 w-full">
+                                
+                                <button onclick="navigateTo('marks')" class="flex-1 bg-brand-900 text-white py-2 rounded-md font-medium text-sm hover:bg-brand-800 transition">View Marks</button>
+                            </div>
+                        </div>
+
+                        <!-- Academic Summary & Chart -->
+                        <div class="lg:col-span-2 space-y-6">
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 text-center">
+                                    <p class="text-sm text-slate-500">Overall %</p>
+                                    <p class="text-2xl font-bold text-slate-800" id="profile-overall-pct">-</p>
+                                </div>
+                                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 text-center">
+                                    <p class="text-sm text-slate-500">Grade</p>
+                                    <p class="text-2xl font-bold text-slate-800" id="profile-overall-grade">-</p>
+                                </div>
+                                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 text-center">
+                                    <p class="text-sm text-slate-500">Passed</p>
+                                    <p class="text-2xl font-bold text-slate-800" id="profile-passed-subjects">-</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-5">
+                                <h3 class="text-base font-semibold text-slate-800 mb-4">Performance Overview</h3>
+                                <div class="h-48 w-full">
+                                    <canvas id="studentProfileChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Marks Table -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div class="px-5 py-4 border-b border-slate-100">
+                            <h3 class="text-base font-semibold text-slate-800">Academic Marks</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-slate-600">
+                                <thead class="text-xs text-slate-500 uppercase bg-slate-50">
+                                    <tr>
+                                        <th class="px-5 py-3">Subject</th>
+                                        <th class="px-5 py-3 text-center">Internal (20)</th>
+                                        <th class="px-5 py-3 text-center">Lab (30)</th>
+                                        <th class="px-5 py-3 text-center">End Sem (50)</th>
+                                        <th class="px-5 py-3 text-center">Total (100)</th>
+                                        <th class="px-5 py-3 text-center">Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="profile-marks-table" class="divide-y divide-slate-100">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-missing-marks" class="app-view hidden space-y-5">
+                    <div><h3 class="font-semibold text-lg">Finish the marks register</h3><p class="text-sm text-slate-500 mt-1">Pending student–subject results appear here. Saved zero marks count as entered; missing or invalid components need attention.</p></div>
+                    <div class="bg-white border border-slate-100 rounded-xl p-4 grid grid-cols-1 md:grid-cols-3 gap-4"><div><label for="missing-course" class="block text-xs font-medium text-slate-500 mb-1">Course</label><select id="missing-course"  class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm disabled:bg-slate-100"></select></div><div><label for="missing-semester" class="block text-xs font-medium text-slate-500 mb-1">Semester</label><select id="missing-semester"  class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm disabled:bg-slate-100"></select></div><div><label for="missing-subject" class="block text-xs font-medium text-slate-500 mb-1">Subject</label><select id="missing-subject"  class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm disabled:bg-slate-100"></select></div></div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm"><p class="text-sm text-slate-500">Pending student–subject results</p><p id="missing-count" class="text-3xl font-bold text-amber-700 mt-2">—</p></div><div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm"><p class="text-sm text-slate-500">Students with pending results</p><p id="missing-students-count" class="text-3xl font-bold text-slate-800 mt-2">—</p></div><div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm"><p class="text-sm text-slate-500">Marks completion</p><p id="missing-completion" class="text-3xl font-bold text-slate-800 mt-2">—</p></div></div>
+                    <div class="bg-white border border-slate-100 rounded-xl shadow-sm overflow-x-auto"><table class="w-full text-sm text-left"><thead class="text-xs uppercase text-slate-500 bg-slate-50"><tr><th class="px-4 py-3">Roll number</th><th class="px-4 py-3">Student</th><th class="px-4 py-3">Class</th><th class="px-4 py-3">Subject</th><th class="px-4 py-3">Missing / invalid components</th><th class="px-4 py-3">Action</th></tr></thead><tbody id="missing-table-body" class="divide-y divide-slate-100"></tbody></table></div>
+                </div>
+                <div id="view-at-risk" class="app-view hidden space-y-5">
+                    <div><h3 class="font-semibold text-lg">Students needing support</h3><p class="text-sm text-slate-500 mt-1">Flags: any subject below 40/100, average below 50%, or recorded subject attendance below 75%. Missing marks are pending, not zero. This is a rule-based checklist.</p><p class="text-xs text-slate-400 mt-2">High: failing subject, average below 40%, or attendance below 60%. Watch: remaining flags. Incomplete averages are provisional; attendance uses individually marked sessions.</p></div>
+                    <p id="risk-attendance-error" class="hidden bg-amber-50 text-amber-800 rounded-lg p-3 text-sm" role="alert"></p>
+                    <div class="bg-white border border-slate-100 rounded-xl p-4 grid grid-cols-1 md:grid-cols-3 gap-4"><div><label for="risk-course" class="block text-xs font-medium text-slate-500 mb-1">Course</label><select id="risk-course"  class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm disabled:bg-slate-100"></select></div><div><label for="risk-semester" class="block text-xs font-medium text-slate-500 mb-1">Semester</label><select id="risk-semester"  class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm disabled:bg-slate-100"></select></div><div><label for="risk-type" class="block text-xs font-medium text-slate-500 mb-1">Risk type</label><select id="risk-type"  class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm disabled:bg-slate-100"><option value="">All risk types</option><option value="academic">Academic</option><option value="attendance">Attendance</option></select></div></div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm"><p class="text-sm text-slate-500">Flagged students</p><p id="risk-total-count" class="text-3xl font-bold text-slate-800 mt-2">—</p></div><div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm"><p class="text-sm text-slate-500">High priority</p><p id="risk-high-count" class="text-3xl font-bold text-red-700 mt-2">—</p></div><div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm"><p class="text-sm text-slate-500">Watch</p><p id="risk-watch-count" class="text-3xl font-bold text-amber-700 mt-2">—</p></div></div>
+                    <div class="bg-white border border-slate-100 rounded-xl shadow-sm overflow-x-auto"><table class="w-full text-sm text-left"><thead class="text-xs uppercase text-slate-500 bg-slate-50"><tr><th class="px-4 py-3">Roll number</th><th class="px-4 py-3">Student / class</th><th class="px-4 py-3">Priority</th><th class="px-4 py-3">Average</th><th class="px-4 py-3">Reasons</th><th class="px-4 py-3">Action</th></tr></thead><tbody id="risk-table-body" class="divide-y divide-slate-100"></tbody></table></div>
+                </div>
+                <div id="view-attendance" class="app-view hidden space-y-5">
+                    <div><h3 class="font-semibold text-lg">Subject attendance register</h3><p class="text-sm text-slate-500 mt-1">Choose the class and subject, then mark Yes for present or No for absent. Subjects and students must match the selected course and semester.</p></div>
+                    <div class="bg-white border border-slate-100 rounded-xl shadow-sm p-4 flex flex-wrap items-end gap-4">
+                        <div class="min-w-[9rem] flex-1"><div><label for="attendance-course" class="block text-xs font-medium text-slate-500 mb-1">Course</label><select id="attendance-course"  class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm disabled:bg-slate-100"></select></div></div>
+                        <div class="min-w-[9rem] flex-1"><div><label for="attendance-semester" class="block text-xs font-medium text-slate-500 mb-1">Semester</label><select id="attendance-semester"  class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm disabled:bg-slate-100"></select></div></div>
+                        <div class="min-w-[13rem] flex-1"><div><label for="attendance-subject" class="block text-xs font-medium text-slate-500 mb-1">Subject</label><select id="attendance-subject"  class="w-full border border-slate-300 rounded-md px-3 py-2 text-sm disabled:bg-slate-100"></select></div></div>
+                        <div><label for="attendance-date" class="block text-xs font-medium text-slate-500 mb-1">Date</label><input id="attendance-date" type="date" class="border border-slate-300 rounded-md px-3 py-2 text-sm disabled:bg-slate-100"></div>
+                        <button id="mark-attendance-button" onclick="startMarkAttendance()" class="bg-brand-900 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"><i class="ph ph-check-square mr-1"></i> Mark Attendance</button>
+                    </div>
+                    <p id="attendance-error" class="hidden bg-red-50 text-red-700 rounded-lg p-3 text-sm" role="alert"></p>
+                    <p id="attendance-mode" class="text-sm text-slate-500" aria-live="polite"></p>
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4"><div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm"><p class="text-sm text-slate-500">Students</p><p id="attendance-roster-count" class="text-3xl font-bold text-slate-800 mt-2">—</p></div><div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm"><p class="text-sm text-slate-500">Present on selected date</p><p id="attendance-present-count" class="text-3xl font-bold text-emerald-700 mt-2">—</p></div><div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm"><p class="text-sm text-slate-500">Absent on selected date</p><p id="attendance-absent-count" class="text-3xl font-bold text-red-700 mt-2">—</p></div><div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm"><p class="text-sm text-slate-500">Not marked</p><p id="attendance-unmarked-count" class="text-3xl font-bold text-amber-700 mt-2">—</p></div></div>
+                    <div class="bg-white border border-slate-100 rounded-xl shadow-sm overflow-x-auto"><table class="w-full text-sm text-left"><thead class="text-xs uppercase text-slate-500 bg-slate-50"><tr><th class="px-4 py-3">Roll number</th><th class="px-4 py-3">Student</th><th class="px-4 py-3">Present (selected date)</th><th class="px-4 py-3">Attended / marked sessions</th><th class="px-4 py-3">Subject attendance %</th><th class="px-4 py-3">Coverage</th></tr></thead><tbody id="attendance-table-body" class="divide-y divide-slate-100"></tbody></table></div>
+                    <div id="attendance-edit-controls" class="hidden bg-white border border-slate-100 rounded-xl p-4 space-y-3">
+                        <p id="attendance-submit-error" class="hidden text-sm text-red-700" role="alert"></p>
+                        <div class="flex flex-wrap gap-2 justify-between"><div class="flex flex-wrap gap-2"><button id="attendance-all-present" onclick="markAllAttendance(true)" class="border border-slate-300 px-3 py-2 rounded-md text-sm disabled:opacity-50">All Yes</button><button id="attendance-all-absent" onclick="markAllAttendance(false)" class="border border-slate-300 px-3 py-2 rounded-md text-sm disabled:opacity-50">All No</button></div><div class="flex gap-2"><button id="attendance-cancel-button" onclick="cancelMarkAttendance()" class="bg-slate-100 px-4 py-2 rounded-md text-sm disabled:opacity-50">Cancel</button><button id="attendance-save-button" onclick="submitAttendance()" class="bg-brand-900 text-white px-4 py-2 rounded-md text-sm disabled:opacity-50">Submit attendance</button></div></div>
+                    </div>
+                </div>
+                <!-- 5. SUBJECTS VIEW -->
+                <div id="view-subjects" class="app-view hidden space-y-4">
+                    <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                        <div class="flex items-center gap-4"><h3 class="text-base font-semibold text-slate-800">Manage Subjects</h3><label class="text-sm text-slate-500" for="subjects-course-filter">Course</label><select id="subjects-course-filter" class="border border-slate-300 rounded-md px-3 py-2 text-sm"><option value="">All courses</option><option value="AIML">AIML</option><option value="CSE">CSE</option><option value="__unassigned">Unassigned</option></select></div>
+                        <button onclick="openModal('modal-add-subject')" class="bg-brand-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-brand-800 transition flex items-center">
+                            <i class="ph ph-plus mr-2"></i> Add Subject
+                        </button>
+                    </div>
+
+                    <p id="subjects-course-notice" class="hidden bg-amber-50 text-amber-800 rounded-lg p-3 text-sm"></p>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-slate-600">
+                                <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-100">
+                                    <tr>
+                                        <th class="px-5 py-3">Subject Code</th>
+                                        <th class="px-5 py-3">Subject Name</th><th class="px-5 py-3">Course</th>
+                                        <th class="px-5 py-3 text-center">Credits</th>
+                                        <th class="px-5 py-3 text-center">Semester</th>
+                                        <th class="px-5 py-3 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="subjects-table-body" class="divide-y divide-slate-100">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. MARKS MANAGEMENT VIEW -->
+                <div id="view-marks" class="app-view hidden space-y-4"><p class="text-xs text-slate-500">Enter all three components to save a result. Empty rows are skipped; clearing a saved row does not delete its database record.</p>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="marks-course-select" class="block text-xs font-medium text-slate-500 mb-1">Course</label>
+                            <select id="marks-course-select" class="w-full py-1.5 pl-3 pr-8 border border-slate-300 rounded-md text-sm"></select>
+                            <div id="marks-cohort" class="text-sm font-medium text-slate-800 py-1.5">Select a subject</div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Subject</label>
+                            <select id="marks-subject-select" class="w-full py-1.5 pl-3 pr-8 border border-slate-300 rounded-md text-sm focus:ring-brand-600 focus:border-brand-600">
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                        <div class="flex items-end justify-end space-x-2">
+                            <button onclick="simulateCsvAction('Import')" class="bg-white border border-slate-300 text-slate-700 px-3 py-1.5 rounded-md text-sm font-medium hover:bg-slate-50 transition flex items-center">
+                                <i class="ph ph-upload-simple mr-1.5"></i> Import CSV
+                            </button>
+                            <button onclick="simulateCsvAction('Export')" class="bg-white border border-slate-300 text-slate-700 px-3 py-1.5 rounded-md text-sm font-medium hover:bg-slate-50 transition flex items-center">
+                                <i class="ph ph-download-simple mr-1.5"></i> Export
+                            </button>
+                            <button id="save-marks-button" onclick="saveMarks()" class="bg-brand-900 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-brand-800 transition flex items-center">
+                                <i class="ph ph-floppy-disk mr-1.5"></i> Save
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-slate-600">
+                                <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-100">
+                                    <tr>
+                                        <th class="px-5 py-3">Roll Number</th>
+                                        <th class="px-5 py-3">Student Name</th>
+                                        <th class="px-5 py-3 text-center">Internal (20)</th>
+                                        <th class="px-5 py-3 text-center">Lab (30)</th>
+                                        <th class="px-5 py-3 text-center">End Sem (50)</th>
+                                        <th id="marks-total-heading" aria-sort="none" class="px-5 py-3 text-center">
+                                            <span class="inline-flex items-center gap-1.5">Total (100)
+                                                <span class="inline-flex flex-col gap-0.5">
+                                                    <button id="marks-sort-desc" type="button" onclick="sortMarksByTotal('desc')" aria-label="Sort total marks highest to lowest" aria-pressed="false" title="Highest to lowest" class="rounded px-1 text-sm leading-none text-slate-400 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600">↑</button>
+                                                    <button id="marks-sort-asc" type="button" onclick="sortMarksByTotal('asc')" aria-label="Sort total marks lowest to highest" aria-pressed="false" title="Lowest to highest" class="rounded px-1 text-sm leading-none text-slate-400 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600">↓</button>
+                                                </span>
+                                            </span>
+                                        </th>
+                                        <th class="px-5 py-3 text-center">Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="marks-table-body" class="divide-y divide-slate-100">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. OVERALL PERFORMANCE VIEW -->
+                <div id="view-performance" class="app-view hidden space-y-6">
+                    <!-- Filters & Export -->
+                    <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                        <div class="text-sm text-slate-600">All courses · Results match each student’s course and semester</div>
+                        <button onclick="simulateCsvAction('Download PDF Report')" class="bg-slate-800 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-slate-700 transition flex items-center">
+                            <i class="ph ph-file-pdf mr-2"></i> Report
+                        </button>
+                    </div>
+
+                    <!-- Summary Cards -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                            <p class="text-sm text-slate-500 mb-1">Class Average</p>
+                            <p class="text-2xl font-bold text-slate-800" id="perf-class-avg">-</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                            <p class="text-sm text-slate-500 mb-1">Highest Score</p>
+                            <p class="text-2xl font-bold text-slate-800" id="perf-highest">-</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                            <p class="text-sm text-slate-500 mb-1">Pass Percentage</p>
+                            <p class="text-2xl font-bold text-slate-800" id="perf-pass-pct">-</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                            <p class="text-sm text-slate-500 mb-1">Total Evaluated</p>
+                            <p class="text-2xl font-bold text-slate-800" id="perf-total">-</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+                            <h3 class="text-base font-semibold text-slate-800 mb-4">Subject Averages</h3>
+                            <div class="h-64 w-full">
+                                <canvas id="perfSubjectChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+                            <h3 class="text-base font-semibold text-slate-800 mb-4">Grade Distribution</h3>
+                            <div class="h-64 w-full flex justify-center">
+                                <canvas id="perfGradeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ranking Table -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center">
+                            <h3 class="text-base font-semibold text-slate-800">Class Rankings</h3>
+                            <button onclick="simulateCsvAction('Export Rankings')" class="text-sm text-brand-600 hover:text-brand-800 font-medium">Export CSV</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-slate-600">
+                                <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-100" id="perf-rank-head">
+                                    <!-- Dynamic headers based on subjects -->
+                                </thead>
+                                <tbody id="perf-rank-body" class="divide-y divide-slate-100">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <!-- Add Student Modal -->
+    <div id="modal-add-student" class="hidden fixed inset-0 z-50 bg-slate-900 bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-slate-800">Add New Student</h3>
+                <button onclick="closeModal('modal-add-student')" class="text-slate-400 hover:text-slate-600"><i class="ph ph-x text-lg"></i></button>
+            </div>
+            <form id="form-add-student" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                    <input type="text" id="add-stu-name" required class="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-brand-600 focus:border-brand-600">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Roll Number</label>
+                    <input type="text" id="add-stu-roll" required class="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-brand-600 focus:border-brand-600">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Course</label>
+                        <select id="add-stu-course" class="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-brand-600 focus:border-brand-600">
+                            <option value="AIML">AIML</option>
+                            <option value="CSE">CSE</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Semester</label>
+                        <select id="add-stu-sem" class="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-brand-600 focus:border-brand-600">
+                            <option value="3">3</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                        <option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                    <input type="email" id="add-stu-email" required class="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-brand-600 focus:border-brand-600">
+                </div>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('modal-add-student')" class="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 rounded-md hover:bg-slate-200">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-brand-900 rounded-md hover:bg-brand-800">Save Student</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Student CSV preview and import results -->
+    <div id="modal-student-import" class="hidden fixed inset-0 z-50 bg-slate-900 bg-opacity-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="student-import-title">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+            <div class="px-6 py-4 border-b flex justify-between items-center">
+                <div><h3 id="student-import-title" class="text-lg font-semibold">Import students</h3><p id="student-import-filename" class="text-xs text-slate-500"></p></div>
+                <button onclick="closeStudentImport()" aria-label="Close import" class="text-slate-500 text-xl">×</button>
+            </div>
+            <div class="px-6 py-4 space-y-2">
+                <p class="text-sm text-slate-600">Only new students are added. Matching roll numbers or emails are skipped, and existing records stay unchanged.</p>
+                <p id="student-import-summary" class="font-medium text-sm" aria-live="polite"></p>
+                <p id="student-import-error" class="hidden text-sm text-red-700" role="alert"></p>
+            </div>
+            <div class="overflow-auto mx-6 mb-4 border rounded-lg">
+                <table class="w-full text-sm text-left"><thead class="bg-slate-50 sticky top-0"><tr><th class="px-3 py-2">CSV line</th><th class="px-3 py-2">Roll number</th><th class="px-3 py-2">Name</th><th class="px-3 py-2">Result</th></tr></thead><tbody id="student-import-preview" class="divide-y"></tbody></table>
+            </div>
+            <div class="px-6 py-4 border-t flex justify-end flex-wrap gap-2">
+                <button id="student-import-report-button" onclick="downloadStudentImportReport()" class="hidden border rounded-md px-3 py-2 text-sm">Download report</button>
+                <button onclick="closeStudentImport()" class="bg-slate-100 rounded-md px-4 py-2 text-sm">Close</button>
+                <button id="confirm-student-import" onclick="confirmStudentImport()" class="bg-brand-900 text-white rounded-md px-4 py-2 text-sm disabled:opacity-50">Add new students</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Subject Modal -->
+    <div id="modal-add-subject" class="hidden fixed inset-0 z-50 bg-slate-900 bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-slate-800">Add New Subject</h3>
+                <button onclick="closeModal('modal-add-subject')" class="text-slate-400 hover:text-slate-600"><i class="ph ph-x text-lg"></i></button>
+            </div>
+            <form id="form-add-subject" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Subject Name</label>
+                    <input type="text" id="add-sub-name" required class="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-brand-600 focus:border-brand-600">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Subject Code</label>
+                    <input type="text" id="add-sub-code" required class="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-brand-600 focus:border-brand-600">
+                </div>
+                <div><label for="add-sub-course" class="block text-sm font-medium text-slate-700 mb-1">Course</label><select id="add-sub-course" required class="w-full px-3 py-2 border border-slate-300 rounded-md text-sm"><option value="">Select course</option><option value="AIML">AIML</option><option value="CSE">CSE</option></select></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Credits</label>
+                        <input type="number" id="add-sub-credits" min="1" max="6" value="4" required class="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-brand-600 focus:border-brand-600">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Semester</label>
+                        <select id="add-sub-sem" class="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-brand-600 focus:border-brand-600">
+                            <option value="3">3</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                        <option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select>
+                    </div>
+                </div>
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('modal-add-subject')" class="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 rounded-md hover:bg-slate-200">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-brand-900 rounded-md hover:bg-brand-800">Save Subject</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col space-y-3"></div>
+
+    <script>
+'use strict';
+const API_BASE_URL = 'http://localhost:8080/api';
+const el = id => document.getElementById(id);
+const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const calcTotal = (i,l,e) => Number(i)+Number(l)+Number(e);
+const calcGrade = total => total == null ? 'Pending' : total>=90?'A+':total>=80?'A':total>=70?'B+':total>=60?'B':total>=50?'C':total>=40?'D':'F';
+const getGradeColor = grade => ({'A+':'text-emerald-600 bg-emerald-50','A':'text-green-600 bg-green-50','B+':'text-blue-600 bg-blue-50','B':'text-indigo-600 bg-indigo-50','C':'text-yellow-600 bg-yellow-50','D':'text-orange-600 bg-orange-50','F':'text-red-600 bg-red-50'}[grade] || 'text-slate-500 bg-slate-100');
+const percent = value => value == null ? '—' : value.toFixed(1)+'%';
+const badge = grade => `<span class="px-2 py-1 rounded-full text-xs font-bold ${getGradeColor(grade)}">${escapeHtml(grade)}</span>`;
+const openModal = id => el(id).classList.remove('hidden');
+const closeModal = id => el(id).classList.add('hidden');
+function showToast(message,type='success') {
+ const toast=document.createElement('div');toast.className='bg-white border border-slate-200 shadow-lg rounded-lg p-4 max-w-lg text-sm '+(type==='error'?'text-red-700':'text-slate-800');toast.textContent=message;el('toast-container').appendChild(toast);setTimeout(()=>toast.remove(),5500);
+}
+async function request(path,method='GET',body,timeout=15000) {
+ let response;
+ try {response=await fetch(API_BASE_URL+path,{method,headers:body===undefined?{}:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(timeout)});}
+ catch(e){throw new Error('Cannot reach the ERP backend. Check that Spring Boot is running on port 8080.');}
+ if(!response.ok){let detail='';try{const problem=await response.json();detail=problem.detail||problem.message||'';}catch(_){}throw new Error(detail|| (response.status===404&&path==='/students/import'?'Student import endpoint is missing. Install the included backend Java files and restart Spring Boot.':`Database request failed (${response.status}). Check the backend terminal.`));}
+ if(response.status===204)return null;
+ const text=await response.text();return text?JSON.parse(text):null;
+}
+const api={
+ login:async(u,p)=>{if(u!=='admin'||p!=='admin123')throw Error('Invalid credentials.');},
+ getStudents:()=>request('/students'),getSubjects:()=>request('/subjects'),getMarks:()=>request('/marks'),
+ getAttendance:()=>request('/attendance').then(rows=>{if(!Array.isArray(rows))throw Error('Unexpected attendance response.');return rows;}),saveAttendance:data=>request('/attendance','POST',data,60000),
+ assignSubjectCourse:(id,course)=>request('/subjects/'+encodeURIComponent(id)+'/course','PATCH',{course}),
+ addStudent:data=>request('/students','POST',data),addSubject:data=>request('/subjects','POST',data),
+ deleteStudent:roll=>request('/students/'+encodeURIComponent(roll),'DELETE'),
+ updateStudentMarks:(rollNo,subjectId,scores)=>request('/marks','POST',{rollNo,subjectId,...scores})
+};
+let snapshot={students:[],subjects:[],marks:{},attendance:[],attendanceError:null},currentRoute='dashboard',currentProfile=null,currentSubjectForMarks=null,currentMarksCourse='AIML',currentCharts={},loadTicket=0,marksDirty=false,saving=false;
+function markFor(data,student,subject) {
+ if(!subjectAppliesToStudent(subject,student))return null;
+ const m=data.marks?.[student.rollNo]?.[subject.id];
+ if(!m || ![['internal',20],['lab',30],['endSem',50]].every(([k,max])=>typeof m[k]==='number'&&Number.isInteger(m[k])&&m[k]>=0&&m[k]<=max))return null;
+ return m;
+}
+function calculatePerformance(data) {
+ const subjectAvgs=Object.create(null),subjectCounts=Object.create(null);
+ for(const sub of data.subjects){const totals=data.students.filter(s=>subjectAppliesToStudent(sub,s)).map(s=>markFor(data,s,sub)).filter(Boolean).map(m=>calcTotal(m.internal,m.lab,m.endSem));subjectCounts[sub.id]=totals.length;subjectAvgs[sub.id]=totals.length?totals.reduce((a,b)=>a+b,0)/totals.length:null;}
+ const students=data.students.map(stu=>{const subjects=data.subjects.filter(s=>subjectAppliesToStudent(s,stu)),results=subjects.map(sub=>({subject:sub,marks:markFor(data,stu,sub)})),totals=results.filter(r=>r.marks).map(r=>calcTotal(r.marks.internal,r.marks.lab,r.marks.endSem)),overallPct=totals.length?totals.reduce((a,b)=>a+b,0)/totals.length:null,complete=subjects.length>0&&totals.length===subjects.length;return {...stu,results,overallPct,grade:calcGrade(overallPct),complete,entered:totals.length,expected:subjects.length,passed:complete&&totals.every(t=>t>=40)};});
+ const assessed=students.filter(s=>s.overallPct!=null),evaluated=students.filter(s=>s.complete),rankings=[...assessed].sort((a,b)=>b.overallPct-a.overallPct||String(a.rollNo).localeCompare(String(b.rollNo))),pending=students.filter(s=>s.overallPct==null);
+ return {totalStudents:data.students.length,totalSubjects:data.subjects.length,classAvg:assessed.length?assessed.reduce((a,s)=>a+s.overallPct,0)/assessed.length:null,passPct:evaluated.length?evaluated.filter(s=>s.passed).length/evaluated.length*100:null,highest:rankings[0]?.overallPct??null,totalEvaluated:evaluated.length,students,rankings,pending,subjectAvgs,subjectCounts};
+}
+function clearChart(id){if(currentCharts[id]){currentCharts[id].destroy();delete currentCharts[id];}}
+function chart(id,type,labels,values,colors='#2563EB') {
+ clearChart(id);if(typeof Chart==='undefined')return;
+ currentCharts[id]=new Chart(el(id).getContext('2d'),{type,data:{labels,datasets:[{label:'Average score (%)',data:values,backgroundColor:colors,borderColor:type==='radar'?'#2563EB':undefined,borderRadius:type==='bar'?4:undefined}]},options:{responsive:true,maintainAspectRatio:false,...(type==='doughnut'?{cutout:'70%'}:{scales:type==='radar'?{r:{min:0,max:100}}:{y:{beginAtZero:true,max:100}}})}});
+}
+function profileButton(s){return `<button type="button" class="text-brand-600 hover:underline font-medium" data-profile="${escapeHtml(s.rollNo)}">${escapeHtml(s.name)}</button>`;}
+function emptyRow(cols,message){return `<tr><td colspan="${cols}" class="px-5 py-8 text-center text-slate-500">${escapeHtml(message)}</td></tr>`;}
+function renderDashboard(){
+ const data=calculatePerformance(snapshot);
+ el('dash-total-students').textContent=data.totalStudents;el('dash-total-subjects').textContent=data.totalSubjects;el('dash-class-avg').textContent=percent(data.classAvg);el('dash-pass-pct').textContent=percent(data.passPct);
+ el('dash-subject-list').innerHTML=snapshot.subjects.map(sub=>`<div class="flex justify-between items-center gap-3"><span class="text-sm font-medium text-slate-700">${escapeHtml(sub.name)}<small class="block text-slate-400">${escapeHtml(sub.course||"Unassigned")} · ${data.subjectCounts[sub.id]} assessed</small></span><span class="text-sm font-bold text-brand-600">${percent(data.subjectAvgs[sub.id])}</span></div>`).join('')||'<p class="text-slate-500 text-sm">No subjects have been added.</p>';
+ el('dash-top-students').innerHTML=data.rankings.slice(0,3).map((s,i)=>`<tr><td class="px-5 py-3">#${i+1}</td><td class="px-5 py-3">${escapeHtml(s.rollNo)}</td><td class="px-5 py-3">${profileButton(s)}${s.complete?'':'<small class="block text-slate-400">Provisional · missing results</small>'}</td><td class="px-5 py-3 text-center">${percent(s.overallPct)}</td><td class="px-5 py-3 text-center">${badge(s.grade)}</td></tr>`).join('')||emptyRow(5,'No marks entered yet. Save marks to see student rankings.');
+ renderTeacherSummary();
+ chart('dashboardChart','bar',snapshot.subjects.map(s=>`${s.course||'Unassigned'} · ${s.name}`),snapshot.subjects.map(s=>data.subjectAvgs[s.id]));
+}
+function renderStudents(){
+ const term=el('filter-student-search').value.toLowerCase(),course=el('filter-student-course').value,sem=el('filter-student-sem').value;
+ const students=snapshot.students.filter(s=>(!course||s.course===course)&&(!sem||Number(s.semester)===Number(sem))&&`${s.name} ${s.rollNo} ${s.email}`.toLowerCase().includes(term));
+ el('students-table-body').innerHTML=students.map((s,i)=>`<tr class="hover:bg-slate-50"><td class="px-5 py-3">${i+1}</td><td class="px-5 py-3">${escapeHtml(s.rollNo)}</td><td class="px-5 py-3">${profileButton(s)}</td><td class="px-5 py-3">${escapeHtml(s.course)}</td><td class="px-5 py-3">Sem ${escapeHtml(s.semester)}</td><td class="px-5 py-3">${escapeHtml(s.email)}</td><td class="px-5 py-3">${escapeHtml(s.status)}</td><td class="px-5 py-3 text-right"><button class="text-brand-600 mr-3" data-profile="${escapeHtml(s.rollNo)}">View</button><button class="text-red-500" data-delete="${escapeHtml(s.rollNo)}">Delete</button></td></tr>`).join('')||emptyRow(8,'No matching students.');
+}
+function renderStudentProfile(rollNo){
+ const s=calculatePerformance(snapshot).students.find(s=>s.rollNo===rollNo);if(!s){currentRoute='students';currentProfile=null;showToast('Student no longer exists.','error');return renderCurrent();}
+ for(const [id,value] of Object.entries({'profile-name':s.name,'profile-initial':s.name.charAt(0),'profile-roll':s.rollNo,'profile-course':s.course,'profile-sem':`Semester ${s.semester}`,'profile-email':s.email,'profile-status':s.status,'profile-overall-pct':percent(s.overallPct),'profile-overall-grade':s.grade+(s.entered&&!s.complete?' *':''),'profile-passed-subjects':`${s.results.filter(r=>r.marks&&calcTotal(r.marks.internal,r.marks.lab,r.marks.endSem)>=40).length}/${s.expected}`}))el(id).textContent=value;
+ el('profile-marks-table').innerHTML=s.results.map(({subject:sub,marks:m})=>`<tr><td class="px-5 py-3">${escapeHtml(sub.name)}</td><td class="px-5 py-3 text-center">${m?.internal??'—'}</td><td class="px-5 py-3 text-center">${m?.lab??'—'}</td><td class="px-5 py-3 text-center">${m?.endSem??'—'}</td><td class="px-5 py-3 text-center">${m?calcTotal(m.internal,m.lab,m.endSem):'—'}</td><td class="px-5 py-3 text-center">${badge(m?calcGrade(calcTotal(m.internal,m.lab,m.endSem)):'Pending')}</td></tr>`).join('')||emptyRow(6,'No subjects assigned to this course and semester.');
+ chart('studentProfileChart','radar',s.results.map(r=>r.subject.name),s.results.map(r=>r.marks?calcTotal(r.marks.internal,r.marks.lab,r.marks.endSem):null),'rgba(37,99,235,.2)');
+}
+function renderSubjects(){
+ const selected=el('subjects-course-filter').value;
+ const subjects=snapshot.subjects.filter(s=>selected==='__unassigned'?!normalizeCourse(s.course):!selected||normalizeCourse(s.course)===selected);
+ const unassigned=snapshot.subjects.filter(s=>!normalizeCourse(s.course)).length;
+ el('subjects-course-notice').textContent=`${unassigned} existing subject(s) need a course. Choose Unassigned, select AIML or CSE in each row, then save. IDs and stored marks are preserved. Use separate subjects for different courses.`;
+ el('subjects-course-notice').classList.toggle('hidden',!unassigned);
+ el('subjects-table-body').innerHTML=subjects.map(s=>`<tr><td class="px-5 py-3">${escapeHtml(s.code)}</td><td class="px-5 py-3">${escapeHtml(s.name)}</td><td class="px-5 py-3">${s.course?escapeHtml(s.course):`<div class="flex items-center gap-2"><select data-course-for="${escapeHtml(s.id)}" aria-label="Course for ${escapeHtml(s.name)}" class="border rounded-md px-2 py-1"><option value="">Select course</option><option value="AIML">AIML</option><option value="CSE">CSE</option></select><button data-assign-subject="${escapeHtml(s.id)}" class="text-brand-600 font-medium">Save course</button></div>`}</td><td class="px-5 py-3 text-center">${s.credits}</td><td class="px-5 py-3 text-center">Sem ${s.semester}</td><td class="px-5 py-3 text-right">${s.course?`<button class="text-brand-600" data-subject="${escapeHtml(s.id)}">Enter marks</button>`:'<span class="text-slate-400 text-xs">Assign course first</span>'}</td></tr>`).join('')||emptyRow(6,'No subjects match this course.');
+}
+async function assignSubjectCourse(id,button){
+ const select=[...el('subjects-table-body').querySelectorAll('[data-course-for]')].find(s=>s.dataset.courseFor===id);
+ if(!select?.value)return showToast('Select a course for this subject.','error');
+ button.disabled=true;
+ try{await api.assignSubjectCourse(id,select.value);showToast('Course assigned. Existing marks are preserved.');await refreshData();}catch(error){showToast(error.message,'error');}finally{button.disabled=false;}
+}
+function renderMarks(){
+ setOptions('marks-course-select',availableCourses(),'Select course',currentMarksCourse);currentMarksCourse=el('marks-course-select').value;
+ const subjects=snapshot.subjects.filter(s=>normalizeCourse(s.course)===currentMarksCourse&&!!currentMarksCourse);
+ if(!subjects.some(s=>s.id===currentSubjectForMarks))currentSubjectForMarks=subjects[0]?.id??null;
+ el('marks-subject-select').innerHTML=subjects.map(s=>`<option value="${escapeHtml(s.id)}" ${s.id===currentSubjectForMarks?'selected':''}>${escapeHtml(s.name)} · Sem ${s.semester}</option>`).join('')||'<option value="">No subjects assigned to this course</option>';buildMarksTable();
+}
+function buildMarksTable(){
+ const sub=snapshot.subjects.find(s=>s.id===currentSubjectForMarks),students=sub?snapshot.students.filter(s=>subjectAppliesToStudent(sub,s)):[];
+ el('marks-cohort').textContent=sub?`${sub.course} · Semester ${sub.semester}`:'Assign/select a course subject';
+ el('marks-table-body').innerHTML=students.map(s=>{const m=markFor(snapshot,s,sub),t=m?calcTotal(m.internal,m.lab,m.endSem):null;return `<tr data-student="${escapeHtml(s.rollNo)}"><td class="px-5 py-3">${escapeHtml(s.rollNo)}</td><td class="px-5 py-3">${escapeHtml(s.name)}</td>${[['internal',20],['lab',30],['endSem',50]].map(([key,max])=>`<td class="px-5 py-3 text-center"><input aria-label="${escapeHtml(s.name)} ${key}" type="number" min="0" max="${max}" step="1" class="mark-input" data-type="${key}" value="${m?.[key]??''}" oninput="handleMarkChange(this)"></td>`).join('')}<td class="px-5 py-3 text-center calc-total">${t??'—'}</td><td class="px-5 py-3 text-center calc-grade">${badge(calcGrade(t))}</td></tr>`;}).join('')||emptyRow(7,'No students match this subject’s course and semester.');marksDirty=false;applyMarksTotalSort();
+}
+let marksTotalSort=null;
+function marksRowTotal(row){const value=row.querySelector('.calc-total')?.textContent.trim();if(!value||value==='—')return null;const number=Number(value);return Number.isFinite(number)?number:null;}
+function orderMarksRows(rows,direction){
+ return [...rows].sort((a,b)=>{const first=marksRowTotal(a),second=marksRowTotal(b);if(first==null&&second!=null)return 1;if(first!=null&&second==null)return -1;if(first!=null&&second!=null&&first!==second)return direction==='desc'?second-first:first-second;return String(a.dataset.student).localeCompare(String(b.dataset.student));});
+}
+function updateMarksSortControls(){
+ el('marks-total-heading').setAttribute('aria-sort',marksTotalSort==='desc'?'descending':marksTotalSort==='asc'?'ascending':'none');
+ for(const direction of ['desc','asc']){const button=el('marks-sort-'+direction),active=marksTotalSort===direction;button.setAttribute('aria-pressed',String(active));button.classList.toggle('text-brand-600',active);button.classList.toggle('text-slate-400',!active);}
+}
+function applyMarksTotalSort(){
+ if(marksTotalSort){const body=el('marks-table-body'),rows=body.querySelectorAll('tr[data-student]');for(const row of orderMarksRows(rows,marksTotalSort))body.appendChild(row);}
+ updateMarksSortControls();
+}
+function sortMarksByTotal(direction){
+ if(saving)return showToast('Wait for marks to finish saving.','info');if(!['asc','desc'].includes(direction))return;
+ marksTotalSort=direction;applyMarksTotalSort();
+}
+
+function handleMarkChange(input){marksDirty=true;marksTotalSort=null;updateMarksSortControls();const row=input.closest('tr'),inputs=[...row.querySelectorAll('.mark-input')],valid=inputs.every(i=>i.value!==''&&i.checkValidity()),t=valid?inputs.reduce((sum,i)=>sum+Number(i.value),0):null;row.querySelector('.calc-total').textContent=t??'—';row.querySelector('.calc-grade').innerHTML=badge(calcGrade(t));}
+async function saveMarks(){
+ if(saving)return;if(!currentSubjectForMarks)return showToast('Add a subject first.','error');const entries=[];
+ for(const row of el('marks-table-body').querySelectorAll('tr[data-student]')){const inputs=[...row.querySelectorAll('.mark-input')];if(inputs.every(i=>i.value===''))continue;for(const i of inputs)if(i.value===''||!i.checkValidity()){i.focus();showToast('Enter all three whole-number marks within 20, 30 and 50.','error');return;}entries.push({roll:row.dataset.student,data:Object.fromEntries(inputs.map(i=>[i.dataset.type,Number(i.value)]))});}
+ if(!entries.length)return showToast('No completed marks to save. Blank rows remain pending.','info');saving=true;el('save-marks-button').disabled=true;
+ try{const results=await Promise.allSettled(entries.map(r=>api.updateStudentMarks(r.roll,currentSubjectForMarks,r.data))),failed=results.filter(r=>r.status==='rejected').length;marksDirty=failed>0;if(failed){showToast(`${results.length-failed} saved; ${failed} failed. Your inputs are kept for retry. The backend saves rows individually.`,'error');}else{marksDirty=false;showToast('Marks saved. Dashboard and performance now use these results.');await refreshData();}}
+ finally{saving=false;el('save-marks-button').disabled=false;}
+}
+function renderPerformance(){
+ const data=calculatePerformance(snapshot);el('perf-class-avg').textContent=percent(data.classAvg);el('perf-highest').textContent=percent(data.highest);el('perf-pass-pct').textContent=percent(data.passPct);el('perf-total').textContent=data.totalEvaluated;
+ el('perf-rank-head').innerHTML='<tr><th class="px-5 py-3">Rank</th><th class="px-5 py-3">Roll No</th><th class="px-5 py-3">Name</th>'+snapshot.subjects.map(s=>`<th class="px-5 py-3 text-center">${escapeHtml(s.course||"Unassigned")} · ${escapeHtml(s.name)}</th>`).join('')+'<th class="px-5 py-3">Overall</th><th class="px-5 py-3">Grade / result</th></tr>';
+ el('perf-rank-body').innerHTML=[...data.rankings,...data.pending].map((s,i)=>`<tr><td class="px-5 py-3">${s.overallPct==null?'—':'#'+(i+1)}</td><td class="px-5 py-3">${escapeHtml(s.rollNo)}</td><td class="px-5 py-3">${profileButton(s)}</td>${snapshot.subjects.map(sub=>{const r=s.results.find(r=>r.subject.id===sub.id);return `<td class="px-5 py-3 text-center">${!r?'N/A':r.marks?calcTotal(r.marks.internal,r.marks.lab,r.marks.endSem):'Pending'}</td>`}).join('')}<td class="px-5 py-3">${percent(s.overallPct)}</td><td class="px-5 py-3">${badge(s.grade)}<small class="block text-slate-400 mt-1">${s.complete?(s.passed?'Passed':'Failed'):`Pending (${s.entered}/${s.expected})`}</small></td></tr>`).join('')||emptyRow(snapshot.subjects.length+5,'No students yet.');
+ chart('perfSubjectChart','bar',snapshot.subjects.map(s=>`${s.course||'Unassigned'} · ${s.name}`),snapshot.subjects.map(s=>data.subjectAvgs[s.id]));const grades=['A+','A','B+','B','C','D','F'];chart('perfGradeChart','doughnut',grades,grades.map(g=>data.rankings.filter(s=>s.grade===g).length),['#10B981','#34D399','#3B82F6','#6366F1','#F59E0B','#F97316','#EF4444']);
+}
+function renderCurrent(){
+ document.querySelectorAll('.app-view').forEach(v=>v.classList.add('hidden'));el('view-'+currentRoute).classList.remove('hidden');document.querySelectorAll('.nav-item').forEach(n=>{const selected=n.dataset.route===currentRoute||(currentRoute==='student-profile'&&n.dataset.route==='students');n.classList.toggle('bg-brand-800',selected);n.classList.toggle('text-white',selected);});
+ el('header-title').textContent=({'dashboard':'Dashboard overview','students':'Student Directory','student-profile':'Student Details','subjects':'Course Subjects','marks':'Marks Entry & Management','performance':'Academic Analytics','missing-marks':'Missing Marks Checklist','at-risk':'At-risk Students','attendance':'Attendance Management'})[currentRoute];
+ ({dashboard:renderDashboard,students:renderStudents,subjects:renderSubjects,marks:renderMarks,performance:renderPerformance,'missing-marks':renderMissingMarks,'at-risk':renderAtRisk,attendance:renderAttendance,'student-profile':()=>renderStudentProfile(currentProfile)})[currentRoute]();
+}
+async function refreshData(){
+ const ticket=++loadTicket;el('data-status').textContent='Loading database records…';el('data-error').classList.add('hidden');document.querySelectorAll('.app-view').forEach(v=>v.classList.add('hidden'));
+ try{const [students,subjects,marks,attendanceState]=await Promise.all([api.getStudents(),api.getSubjects(),api.getMarks(),api.getAttendance().then(records=>({records,error:null}),error=>({records:[],error:error.message}))]);if(ticket!==loadTicket)return;
+ if(!Array.isArray(students)||!Array.isArray(subjects)||!marks||typeof marks!=='object'||Array.isArray(marks))throw Error('Unexpected API response. Check the backend.');snapshot={students,subjects,marks,attendance:attendanceState.records,attendanceError:attendanceState.error};renderCurrent();el('data-status').textContent='Live database · Updated '+new Date().toLocaleTimeString()+(attendanceState.error?' · Attendance unavailable':'');}
+ catch(error){if(ticket!==loadTicket)return;el('data-status').textContent='Database unavailable';el('data-error-message').textContent=error.message;el('data-error').classList.remove('hidden');}
+}
+async function navigateTo(route,params=null){if(attendanceSaving)return showToast('Wait for attendance to finish saving.','info');if(studentImportBusy)return showToast('Wait for the student CSV operation to finish.','info');if(saving)return showToast('Wait for marks to finish saving.','info');if((marksDirty||attendanceDraftDirty)&&!confirm('Discard unsaved marks or attendance?'))return;marksDirty=false;attendanceDraftDirty=false;attendanceEditing=false;attendanceDraft.clear();currentRoute=route;currentProfile=params;await refreshData();}
+async function removeStudent(roll){if(!confirm('Delete this student?'))return;try{await api.deleteStudent(roll);showToast('Student deleted.');await refreshData();}catch(e){showToast(e.message,'error');}}
+// Teacher tools share the same live students, subjects and marks snapshot.
+const RISK_RULES={fail:40,lowAverage:50,attendance:75,severeAttendance:60};
+const localDate=()=>{const date=new Date();return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;};
+let attendanceSelection={course:'',semester:'',subjectId:'',date:localDate()},attendanceEditing=false,attendanceDraftDirty=false,attendanceSaving=false,attendanceDraft=new Map();
+const normalizeCourse=value=>String(value??'').trim().toUpperCase();
+function subjectAppliesToStudent(subject,student){return !!normalizeCourse(subject.course)&&normalizeCourse(subject.course)===normalizeCourse(student.course)&&Number(subject.semester)===Number(student.semester);}
+function availableCourses(data=snapshot){return [...new Set([...data.students.map(s=>normalizeCourse(s.course)).filter(Boolean),'AIML','CSE'])].sort();}
+function applicableSubjects(data,student){return data.subjects.filter(s=>subjectAppliesToStudent(s,student));}
+function missingComponents(data,student,subject){
+ const marks=data.marks?.[student.rollNo]?.[subject.id];
+ return [['internal',20,'Internal'],['lab',30,'Lab'],['endSem',50,'End sem']].filter(([key,max])=>!marks||!Number.isInteger(marks[key])||marks[key]<0||marks[key]>max).map(([, ,label])=>label);
+}
+function missingMarkRows(data){
+ return data.students.flatMap(student=>applicableSubjects(data,student).filter(subject=>!markFor(data,student,subject)).map(subject=>({student,subject,components:missingComponents(data,student,subject)})));
+}
+function attendanceIndex(data){
+ const index=new Map(),seen=new Set();
+ for(const row of data.attendance??[]){
+  if(typeof row.present!=='boolean')continue;
+  const sessionKey=JSON.stringify([row.rollNo,row.subjectId,row.date]);if(seen.has(sessionKey))continue;seen.add(sessionKey);
+  const key=JSON.stringify([row.rollNo,row.subjectId]);const stat=index.get(key)||{present:0,total:0};stat.total++;if(row.present)stat.present++;index.set(key,stat);
+ }
+ return index;
+}
+function attendanceStats(index,rollNo,subjectId){const stat=index.get(JSON.stringify([rollNo,subjectId]))||{present:0,total:0};return {...stat,percentage:stat.total?stat.present/stat.total*100:null};}
+function atRiskStudents(data){
+ const index=attendanceIndex(data);
+ return calculatePerformance(data).students.flatMap(student=>{
+  const reasons=[];
+  for(const result of student.results){if(result.marks&&calcTotal(result.marks.internal,result.marks.lab,result.marks.endSem)<RISK_RULES.fail)reasons.push({type:'academic',severe:true,label:`${result.subject.name}: ${calcTotal(result.marks.internal,result.marks.lab,result.marks.endSem)}/100`,subjectId:result.subject.id});}
+  if(student.overallPct!=null&&student.overallPct<RISK_RULES.lowAverage)reasons.push({type:'academic',severe:student.overallPct<RISK_RULES.fail,label:`${student.complete?'Overall':'Provisional'} average: ${percent(student.overallPct)}`});
+  for(const subject of applicableSubjects(data,student)){const stat=attendanceStats(index,student.rollNo,subject.id);if(stat.percentage!=null&&stat.percentage<RISK_RULES.attendance)reasons.push({type:'attendance',severe:stat.percentage<RISK_RULES.severeAttendance,label:`${subject.name} attendance: ${percent(stat.percentage)} (${stat.present}/${stat.total} marked sessions)`,subjectId:subject.id});}
+  return reasons.length?[{...student,reasons,level:reasons.some(r=>r.severe)?'High':'Watch'}]:[];
+ }).sort((a,b)=>(a.level===b.level?0:a.level==='High'?-1:1)||(a.overallPct??101)-(b.overallPct??101)||String(a.rollNo).localeCompare(String(b.rollNo)));
+}
+function setOptions(id,options,placeholder,selected=el(id).value){
+ el(id).innerHTML=`<option value="">${escapeHtml(placeholder)}</option>`+options.map(option=>{const value=typeof option==='object'?option.value:option,label=typeof option==='object'?option.label:option;return `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`;}).join('');
+ el(id).value=options.some(option=>String(typeof option==='object'?option.value:option)===String(selected))?selected:'';
+}
+function fillInsightFilters(prefix){
+ setOptions(prefix+'-course',availableCourses(),'All courses');
+ const course=el(prefix+'-course').value;
+ const semesters=[...new Set(snapshot.students.filter(s=>!course||normalizeCourse(s.course)===course).map(s=>Number(s.semester)).filter(n=>Number.isInteger(n)&&n>=1&&n<=8))].sort((a,b)=>a-b);
+ setOptions(prefix+'-semester',semesters.map(value=>({value,label:'Semester '+value})),'All semesters');
+}
+function renderTeacherSummary(){
+ const missing=missingMarkRows(snapshot),risks=atRiskStudents(snapshot);
+ el('teacher-missing-count').textContent=missing.length;el('teacher-missing-caption').textContent=`Across ${new Set(missing.map(r=>r.subject.id)).size} subjects`;
+ el('teacher-risk-count').textContent=risks.length;el('teacher-risk-caption').textContent=snapshot.attendanceError?'Academic flags · attendance unavailable':`${risks.filter(s=>s.level==='High').length} high priority · academic & attendance flags`;
+}
+function renderMissingMarks(){
+ fillInsightFilters('missing');const course=el('missing-course').value,semester=el('missing-semester').value;
+ const subjects=snapshot.subjects.filter(s=>!!normalizeCourse(s.course)&&(!course||normalizeCourse(s.course)===course)&&(!semester||Number(s.semester)===Number(semester)));setOptions('missing-subject',subjects.map(s=>({value:s.id,label:`${s.name} · Sem ${s.semester}`})),'All subjects');const subjectId=el('missing-subject').value;
+ const students=snapshot.students.filter(s=>(!course||normalizeCourse(s.course)===course)&&(!semester||Number(s.semester)===Number(semester)));
+ const expected=students.reduce((sum,student)=>sum+applicableSubjects(snapshot,student).filter(s=>!subjectId||s.id===subjectId).length,0);
+ const rows=missingMarkRows(snapshot).filter(({student,subject})=>students.some(s=>s.rollNo===student.rollNo)&&(!subjectId||subject.id===subjectId));
+ el('missing-count').textContent=rows.length;el('missing-students-count').textContent=new Set(rows.map(r=>r.student.rollNo)).size;el('missing-completion').textContent=expected?percent((expected-rows.length)/expected*100):'—';
+ el('missing-table-body').innerHTML=rows.map(({student,subject,components})=>`<tr><td class="px-4 py-3">${escapeHtml(student.rollNo)}</td><td class="px-4 py-3">${profileButton(student)}</td><td class="px-4 py-3">${escapeHtml(student.course)} · Sem ${escapeHtml(student.semester)}</td><td class="px-4 py-3">${escapeHtml(subject.name)}<small class="block text-slate-400">${escapeHtml(subject.code)}</small></td><td class="px-4 py-3 text-amber-700">${escapeHtml(components.join(', '))}</td><td class="px-4 py-3"><button data-missing-marks="${escapeHtml(subject.id)}" data-roll="${escapeHtml(student.rollNo)}" class="text-brand-600 font-medium hover:underline">Enter marks →</button></td></tr>`).join('')||emptyRow(6,expected?'All marks are complete for these filters.':'No student-subject assignments match these filters.');
+}
+function renderAtRisk(){
+ fillInsightFilters('risk');const course=el('risk-course').value,semester=el('risk-semester').value,type=el('risk-type').value;
+ const rows=atRiskStudents(snapshot).filter(s=>(!course||normalizeCourse(s.course)===course)&&(!semester||Number(s.semester)===Number(semester))&&(!type||s.reasons.some(r=>r.type===type)));
+ el('risk-total-count').textContent=rows.length;el('risk-high-count').textContent=rows.filter(s=>s.level==='High').length;el('risk-watch-count').textContent=rows.filter(s=>s.level==='Watch').length;
+ el('risk-attendance-error').textContent=snapshot.attendanceError?'Attendance checks unavailable: '+snapshot.attendanceError:'';el('risk-attendance-error').classList.toggle('hidden',!snapshot.attendanceError);
+ el('risk-table-body').innerHTML=rows.map(student=>`<tr><td class="px-4 py-3">${escapeHtml(student.rollNo)}</td><td class="px-4 py-3">${profileButton(student)}<small class="block text-slate-400">${escapeHtml(student.course)} · Sem ${escapeHtml(student.semester)}</small></td><td class="px-4 py-3"><span class="px-2 py-1 rounded-full text-xs font-semibold ${student.level==='High'?'text-red-700 bg-red-50':'text-amber-700 bg-amber-50'}">${student.level}</span></td><td class="px-4 py-3">${percent(student.overallPct)}<small class="block text-slate-400">${student.complete?'Complete':`Provisional · ${student.entered}/${student.expected} results`}</small></td><td class="px-4 py-3">${student.reasons.filter(r=>!type||r.type===type).map(reason=>`<p class="mb-1 text-xs ${reason.type==='attendance'?'text-orange-700':'text-red-700'}">${escapeHtml(reason.label)}</p>`).join('')}</td><td class="px-4 py-3"><button data-profile="${escapeHtml(student.rollNo)}" class="text-brand-600 hover:underline text-sm">View student</button>${student.reasons.find(r=>r.type==='attendance')?`<button data-risk-attendance="${escapeHtml(student.rollNo)}" data-subject-id="${escapeHtml(student.reasons.find(r=>r.type==='attendance').subjectId)}" class="block text-brand-600 hover:underline text-sm mt-2">View attendance</button>`:''}</td></tr>`).join('')||emptyRow(6,snapshot.attendanceError?'No academic risks match these filters. Attendance checks are unavailable.':'No students match the risk rules for these filters.');
+}
+function attendanceRoster(data=snapshot,selection=attendanceSelection){return data.students.filter(s=>normalizeCourse(s.course)===selection.course&&Number(s.semester)===Number(selection.semester));}
+function attendanceReady(){return !!attendanceSelection.course&&!!attendanceSelection.semester&&!!attendanceSelection.subjectId&&!!attendanceSelection.date;}
+function attendanceDayRows(data=snapshot,selection=attendanceSelection){return (data.attendance??[]).filter(r=>r.subjectId===selection.subjectId&&r.date===selection.date);}
+function renderAttendance(){
+ setOptions('attendance-course',availableCourses(),'Select course',attendanceSelection.course);attendanceSelection.course=el('attendance-course').value;
+ const semesters=[...new Set(snapshot.students.filter(s=>normalizeCourse(s.course)===attendanceSelection.course).map(s=>Number(s.semester)).filter(n=>Number.isInteger(n)&&n>=1&&n<=8))].sort((a,b)=>a-b);
+ setOptions('attendance-semester',semesters.map(value=>({value,label:'Semester '+value})),'Select semester',attendanceSelection.semester);attendanceSelection.semester=el('attendance-semester').value;
+ const subjects=attendanceSelection.semester?snapshot.subjects.filter(s=>normalizeCourse(s.course)===attendanceSelection.course&&Number(s.semester)===Number(attendanceSelection.semester)):[];
+ setOptions('attendance-subject',subjects.map(s=>({value:s.id,label:`${s.name} (${s.code})`})),'Select subject',attendanceSelection.subjectId);attendanceSelection.subjectId=el('attendance-subject').value;
+ el('attendance-date').value=attendanceSelection.date;el('attendance-date').max=localDate();
+ for(const id of ['attendance-course','attendance-semester','attendance-subject','attendance-date'])el(id).disabled=attendanceEditing||attendanceSaving||(id==='attendance-semester'&&!attendanceSelection.course)||(id==='attendance-subject'&&!attendanceSelection.semester);
+ const students=attendanceReady()?attendanceRoster():[],day=new Map(attendanceDayRows().map(r=>[r.rollNo,r.present])),index=attendanceIndex(snapshot);
+ const selections=students.map(s=>attendanceEditing?attendanceDraft.get(s.rollNo):day.get(s.rollNo));
+ el('attendance-roster-count').textContent=students.length;el('attendance-present-count').textContent=selections.filter(v=>v===true).length;el('attendance-absent-count').textContent=selections.filter(v=>v===false).length;el('attendance-unmarked-count').textContent=selections.filter(v=>typeof v!=='boolean').length;
+ el('attendance-error').textContent=snapshot.attendanceError||'';el('attendance-error').classList.toggle('hidden',!snapshot.attendanceError);
+ el('mark-attendance-button').disabled=!students.length||!!snapshot.attendanceError||attendanceEditing||attendanceSaving;
+ el('attendance-edit-controls').classList.toggle('hidden',!attendanceEditing);
+ el('attendance-save-button').disabled=attendanceSaving;el('attendance-save-button').textContent=attendanceSaving?'Saving attendance…':'Submit attendance';
+ for(const id of ['attendance-cancel-button','attendance-all-present','attendance-all-absent'])el(id).disabled=attendanceSaving;
+ el('attendance-mode').textContent=attendanceEditing?'Editing · choose Yes or No for every student, then submit.':'Select a course, semester, subject and date. Use Mark Attendance to enter or correct Yes/No values.';
+ el('attendance-table-body').innerHTML=snapshot.attendanceError?emptyRow(6,'Attendance could not be loaded. Install the backend update, then refresh.'):students.map(student=>{const stat=attendanceStats(index,student.rollNo,attendanceSelection.subjectId),present=attendanceEditing?attendanceDraft.get(student.rollNo):day.get(student.rollNo);return `<tr><td class="px-4 py-3">${escapeHtml(student.rollNo)}</td><td class="px-4 py-3">${profileButton(student)}</td><td class="px-4 py-3">${attendanceEditing?`<select data-attendance-roll="${escapeHtml(student.rollNo)}" aria-label="Present: ${escapeHtml(student.name)}" class="border border-slate-300 rounded-md px-3 py-1.5 text-sm" ${attendanceSaving?'disabled':''}><option value="" ${typeof present!=='boolean'?'selected':''}>Choose Yes / No</option><option value="yes" ${present===true?'selected':''}>Yes</option><option value="no" ${present===false?'selected':''}>No</option></select>`:`<span class="font-medium ${present===true?'text-emerald-700':present===false?'text-red-700':'text-slate-400'}">${present===true?'Yes':present===false?'No':'Not marked'}</span>`}</td><td class="px-4 py-3 text-center">${stat.present} / ${stat.total}</td><td class="px-4 py-3 text-center ${stat.percentage!=null&&stat.percentage<RISK_RULES.attendance?'text-red-700':'text-slate-700'}">${percent(stat.percentage)}</td><td class="px-4 py-3 text-xs text-slate-500">${stat.total?'Based on individually marked sessions':'No attendance recorded yet'}</td></tr>`;}).join('')||emptyRow(6,attendanceReady()?'No students match this course and semester.':'Choose course → semester → subject to display attendance.');
+}
+function changeAttendanceSelection(field,value){
+ if(attendanceEditing||attendanceSaving)return;
+ attendanceSelection[field]=value;
+ if(field==='course'){attendanceSelection.semester='';attendanceSelection.subjectId='';}
+ if(field==='semester')attendanceSelection.subjectId='';
+ renderAttendance();
+}
+function startMarkAttendance(){
+ if(attendanceSaving||attendanceEditing||!attendanceReady()||snapshot.attendanceError)return;
+ if(attendanceSelection.date>localDate())return showToast('Choose today or an earlier date.','error');
+ const students=attendanceRoster();if(!students.length)return;
+ const day=new Map(attendanceDayRows().map(r=>[r.rollNo,r.present]));attendanceDraft=new Map(students.map(s=>[s.rollNo,day.get(s.rollNo)]));attendanceEditing=true;attendanceDraftDirty=false;el('attendance-submit-error').classList.add('hidden');renderAttendance();
+}
+function changeAttendancePresent(select){if(attendanceSaving)return;attendanceDraft.set(select.dataset.attendanceRoll,select.value==='yes'?true:select.value==='no'?false:undefined);attendanceDraftDirty=true;const values=[...attendanceDraft.values()];el('attendance-present-count').textContent=values.filter(v=>v===true).length;el('attendance-absent-count').textContent=values.filter(v=>v===false).length;el('attendance-unmarked-count').textContent=values.filter(v=>typeof v!=='boolean').length;}
+function markAllAttendance(present){if(!attendanceEditing||attendanceSaving)return;attendanceDraft=new Map(attendanceRoster().map(s=>[s.rollNo,present]));attendanceDraftDirty=true;renderAttendance();}
+function cancelMarkAttendance(){if(attendanceSaving)return;if(attendanceDraftDirty&&!confirm('Discard unsaved attendance?'))return;attendanceEditing=false;attendanceDraftDirty=false;attendanceDraft.clear();el('attendance-submit-error').classList.add('hidden');renderAttendance();}
+async function submitAttendance(){
+ if(attendanceSaving||!attendanceEditing)return;
+ const roster=attendanceRoster();const missing=roster.find(s=>typeof attendanceDraft.get(s.rollNo)!=='boolean');
+ if(missing){showToast(`Choose Yes or No for ${missing.name} (${missing.rollNo}).`,'error');const select=[...el('attendance-table-body').querySelectorAll('[data-attendance-roll]')].find(e=>e.dataset.attendanceRoll===missing.rollNo);select?.focus();return;}
+ if(!roster.length)return showToast('No students to submit.','error');
+ const payload={course:attendanceSelection.course,semester:Number(attendanceSelection.semester),subjectId:attendanceSelection.subjectId,date:attendanceSelection.date,entries:roster.map(s=>({rollNo:s.rollNo,present:attendanceDraft.get(s.rollNo)}))};
+ attendanceSaving=true;el('attendance-submit-error').classList.add('hidden');renderAttendance();
+ try{
+  const result=await api.saveAttendance(payload);if(!result||result.saved!==roster.length||result.subjectId!==payload.subjectId||result.date!==payload.date)throw Error('Unexpected attendance response. Refresh to check the saved records.');
+  attendanceEditing=false;attendanceDraftDirty=false;attendanceDraft.clear();showToast(`Attendance saved for ${result.saved} students. Refreshing database records…`);await refreshData();
+ }catch(error){el('attendance-submit-error').textContent=error.message+' Your choices are kept. If the class roster changed, cancel and refresh. Re-submitting this date updates the same records.';el('attendance-submit-error').classList.remove('hidden');showToast(error.message,'error');}
+ finally{attendanceSaving=false;if(currentRoute==='attendance'&&!el('view-attendance').classList.contains('hidden'))renderAttendance();}
+}
+async function openMissingMarks(subjectId,rollNo){
+ currentSubjectForMarks=subjectId;currentMarksCourse=normalizeCourse(snapshot.subjects.find(s=>s.id===subjectId)?.course);await navigateTo('marks');
+ if(currentRoute!=='marks')return;const row=[...el('marks-table-body').querySelectorAll('tr[data-student]')].find(r=>r.dataset.student===rollNo);if(row){row.scrollIntoView({block:'center'});row.querySelector('.mark-input')?.focus();}
+}
+async function openRiskAttendance(rollNo,subjectId){
+ if(attendanceSaving||studentImportBusy||saving)return;
+ const student=snapshot.students.find(s=>s.rollNo===rollNo);if(!student)return;
+ attendanceSelection={course:normalizeCourse(student.course),semester:String(student.semester),subjectId,date:localDate()};await navigateTo('attendance');
+}
+
+// Student CSV tools: quoted fields, UTF-8 BOM, CRLF, and line-numbered feedback.
+const STUDENT_CSV_HEADERS=['rollNo','name','course','semester','email','status'];
+let studentImportRows=[],studentImportBusy=false,studentImportReport=[];
+function parseCsv(text){
+ text=String(text).replace(/^\uFEFF/,'');
+ const rows=[];let cells=[],field='',quoted=false,afterQuote=false,line=1,startLine=1;
+ const pushRow=()=>{cells.push(field);if(cells.some(v=>v.trim()!==''))rows.push({rowNumber:startLine,cells});cells=[];field='';afterQuote=false;};
+ for(let i=0;i<text.length;i++){
+  const c=text[i];
+  if(quoted){if(c==='"'){if(text[i+1]==='"'){field+='"';i++;}else{quoted=false;afterQuote=true;}}else{field+=c;if(c==='\n')line++;}continue;}
+  if(afterQuote&&c!==','&&c!=='\r'&&c!=='\n')throw Error(`Unexpected character after a quoted field on line ${line}.`);
+  if(c==='"'){if(field!=='')throw Error(`Unexpected quote on line ${line}.`);quoted=true;}
+  else if(c===','){cells.push(field);field='';afterQuote=false;}
+  else if(c==='\r'||c==='\n'){if(c==='\r'&&text[i+1]==='\n')i++;pushRow();line++;startLine=line;}
+  else field+=c;
+ }
+ if(quoted)throw Error('The CSV contains an unclosed quoted field.');
+ if(field!==''||cells.length||afterQuote)pushRow();
+ return rows;
+}
+function csvCell(value){
+ let text=String(value??'');
+ // Escape spreadsheet formulas. Escape an existing apostrophe too, so export/import remains reversible.
+ if(/^[=+\-@\t\r']/.test(text))text="'"+text;
+ return '"'+text.replace(/"/g,'""')+'"';
+}
+function unescapeCsvCell(value){return /^'[=+\-@\t\r']/.test(value)?value.slice(1):value;}
+function downloadCsv(filename,headers,rows){
+ const content='\uFEFF'+[headers,...rows].map(row=>row.map(csvCell).join(',')).join('\r\n')+'\r\n';
+ const url=URL.createObjectURL(new Blob([content],{type:'text/csv;charset=utf-8;'}));
+ const link=document.createElement('a');link.href=url;link.download=filename;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function downloadStudentTemplate(){downloadCsv('students_template.csv',STUDENT_CSV_HEADERS,[['2026001','Example Student','AIML',3,'example.student@mitwpu.edu.in','Active']]);}
+async function exportStudentsCsv(){
+ const button=el('export-students-button');button.disabled=true;
+ try{const students=await api.getStudents();downloadCsv(`students_${new Date().toISOString().slice(0,10)}.csv`,STUDENT_CSV_HEADERS,students.map(s=>STUDENT_CSV_HEADERS.map(k=>s[k])));showToast(`${students.length} students exported from the database.`);}
+ catch(error){showToast(error.message,'error');}finally{button.disabled=false;}
+}
+function studentCsvValidation(student){
+ if(!/^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(student.rollNo))return 'Roll number must contain 1–64 letters, digits, underscores or hyphens.';
+ if(!student.name||student.name.length>255)return 'Name is required (maximum 255 characters).';
+ if(!['AIML','CSE'].includes(student.course))return 'Course must be AIML or CSE.';
+ if(!Number.isInteger(student.semester)||student.semester<1||student.semester>8)return 'Semester must be a whole number from 1 to 8.';
+ if(student.email.length>255||!/^[^\s@]+@mitwpu\.edu\.in$/.test(student.email))return 'Enter a valid @mitwpu.edu.in email.';
+ if(student.status.length>50)return 'Status must be at most 50 characters.';
+ return null;
+}
+function prepareStudentCsv(text,existing){
+ const parsed=parseCsv(text);if(!parsed.length)throw Error('The CSV is empty.');
+ const aliases={rollno:'rollNo',rollnumber:'rollNo',prn:'rollNo',name:'name',studentname:'name',course:'course',semester:'semester',sem:'semester',email:'email',emailaddress:'email',status:'status'};
+ const headers=parsed.shift().cells.map(h=>{const key=h.trim().toLowerCase().replace(/[\s_-]/g,'');return Object.hasOwn(aliases,key)?aliases[key]:null;});
+ const known=headers.filter(Boolean);if(new Set(known).size!==known.length)throw Error('The CSV contains duplicate column headings.');
+ const missing=STUDENT_CSV_HEADERS.slice(0,5).filter(h=>!known.includes(h));if(missing.length)throw Error('Missing CSV columns: '+missing.join(', '));
+ if(!parsed.length)throw Error('The CSV has headings but no student rows.');if(parsed.length>2000)throw Error('Import at most 2,000 students per CSV. Split larger files.');
+ const rolls=new Set(existing.map(s=>String(s.rollNo??'').trim().toLowerCase())),emails=new Set(existing.map(s=>String(s.email??'').trim().toLowerCase()).filter(Boolean));
+ return parsed.map(row=>{
+  const raw=Object.fromEntries(headers.map((h,i)=>[h,unescapeCsvCell(row.cells[i]??'').trim()]));
+  const semesterText=raw.semester??'';
+  const student={rollNo:raw.rollNo??'',name:raw.name??'',course:(raw.course??'').toUpperCase(),semester:/^\d+$/.test(semesterText)?Number(semesterText):null,email:(raw.email??'').toLowerCase(),status:raw.status||'Active'};
+  const error=row.cells.length!==headers.length?'Column count does not match the headings.':studentCsvValidation(student);
+  if(error)return {...row,student,status:'invalid',message:error};
+  const roll=student.rollNo.toLowerCase();
+  if(rolls.has(roll)||emails.has(student.email))return {...row,student,status:'duplicate',message:'Roll number or email already exists in the database or an earlier CSV row.'};
+  rolls.add(roll);emails.add(student.email);
+  return {...row,student,status:'new',message:'Ready to add.'};
+ });
+}
+function renderStudentImport(rows,finished=false){
+ const count=status=>rows.filter(r=>r.status===status).length;
+ el('student-import-summary').textContent=finished?`${count('added')} added · ${count('duplicate')} duplicates skipped · ${count('invalid')} invalid · ${count('failed')} failed`:`${count('new')} new students · ${count('duplicate')} duplicates to skip · ${count('invalid')} invalid rows`;
+ el('student-import-preview').innerHTML=rows.map(r=>`<tr><td class="px-3 py-2">${r.rowNumber}</td><td class="px-3 py-2">${escapeHtml(r.student?.rollNo??r.rollNo)}</td><td class="px-3 py-2">${escapeHtml(r.student?.name??'')}</td><td class="px-3 py-2"><span class="font-medium ${r.status==='new'||r.status==='added'?'text-emerald-700':r.status==='duplicate'?'text-amber-700':'text-red-700'}">${escapeHtml(r.status)}</span><small class="block text-slate-500">${escapeHtml(r.message)}</small></td></tr>`).join('');
+ el('confirm-student-import').disabled=studentImportBusy||finished||!count('new');
+ el('confirm-student-import').textContent=finished?'Import complete':`Add ${count('new')} new students`;
+ el('student-import-report-button').classList.toggle('hidden',!finished);
+}
+async function previewStudentImport(file){
+ if(!file)return;if(studentImportBusy)return;
+ if(!/\.csv$/i.test(file.name))return showToast('Choose a .csv file.','error');
+ if(file.size>2*1024*1024)return showToast('CSV files must be smaller than 2 MB.','error');
+ studentImportBusy=true;el('import-students-button').disabled=true;
+ try{
+  const [text,students]=await Promise.all([file.text(),api.getStudents()]);
+  studentImportRows=prepareStudentCsv(text,students);studentImportReport=[];el('student-import-error').classList.add('hidden');
+  el('student-import-filename').textContent=file.name;renderStudentImport(studentImportRows);openModal('modal-student-import');
+ }catch(error){showToast(error.message,'error');}
+ finally{studentImportBusy=false;el('import-students-button').disabled=false;if(studentImportRows.length)el('confirm-student-import').disabled=!studentImportRows.some(r=>r.status==='new');el('student-csv-input').value='';}
+}
+function closeStudentImport(){if(studentImportBusy)return showToast('Wait for the import to finish.','info');closeModal('modal-student-import');}
+async function confirmStudentImport(){
+ if(studentImportBusy)return;const candidates=studentImportRows.filter(r=>r.status==='new');if(!candidates.length)return;
+ studentImportBusy=true;el('confirm-student-import').disabled=true;el('confirm-student-import').textContent='Saving new students…';el('student-import-error').classList.add('hidden');
+ try{
+  const result=await request('/students/import','POST',candidates.map(r=>({rowNumber:r.rowNumber,student:r.student})),120000);
+  if(!result||!Array.isArray(result.rows)||result.rows.length!==candidates.length)throw Error('Unexpected import response. Reload the preview before retrying.');
+  const byLine=new Map(result.rows.map(r=>[r.rowNumber,r]));
+  studentImportRows=studentImportRows.map(r=>r.status==='new'?{...r,...byLine.get(r.rowNumber)}:r);
+  studentImportReport=studentImportRows;renderStudentImport(studentImportRows,true);
+  showToast(`${result.added} new students saved. Existing students were left unchanged.`);
+  await refreshData();
+ }catch(error){
+  const message=error.message+' If the connection ended, some rows may already be saved. Close this window and select the CSV again to check safely.';
+  el('student-import-error').textContent=message;el('student-import-error').classList.remove('hidden');el('confirm-student-import').textContent='Select CSV again to retry';el('confirm-student-import').disabled=true;
+ }finally{studentImportBusy=false;}
+}
+function downloadStudentImportReport(){downloadCsv('student_import_report.csv',['line','rollNo','name','result','message'],studentImportReport.map(r=>[r.rowNumber,r.student?.rollNo??r.rollNo,r.student?.name,r.status,r.message]));}
+
+function simulateCsvAction(){showToast('CSV/PDF export is not implemented in this version.','info');}
+document.addEventListener('DOMContentLoaded',()=>{
+ for(const id of ['missing-course','missing-semester','missing-subject'])el(id).addEventListener('change',renderMissingMarks);
+ for(const id of ['risk-course','risk-semester','risk-type'])el(id).addEventListener('change',renderAtRisk);
+ for(const [id,field] of [['attendance-course','course'],['attendance-semester','semester'],['attendance-subject','subjectId'],['attendance-date','date']])el(id).addEventListener('change',e=>changeAttendanceSelection(field,e.target.value));
+ document.addEventListener('change',e=>{if(e.target.matches('[data-attendance-roll]'))changeAttendancePresent(e.target);});
+ document.addEventListener('click',e=>{const missing=e.target.closest('[data-missing-marks]'),risk=e.target.closest('[data-risk-attendance]');if(missing)openMissingMarks(missing.dataset.missingMarks,missing.dataset.roll);if(risk)openRiskAttendance(risk.dataset.riskAttendance,risk.dataset.subjectId);});
+ el('student-csv-input').addEventListener('change',e=>previewStudentImport(e.target.files[0]));
+ el('login-form').addEventListener('submit',async e=>{e.preventDefault();try{await api.login(el('login-username').value,el('login-password').value);el('view-login').classList.add('hidden');el('app-layout').classList.remove('hidden');await navigateTo('dashboard');}catch(error){showToast('Invalid credentials (use admin/admin123)','error');}});
+ el('btn-logout').addEventListener('click',e=>{e.preventDefault();if(saving||studentImportBusy||attendanceSaving)return;if((marksDirty||attendanceDraftDirty)&&!confirm('Discard unsaved marks or attendance and log out?'))return;marksDirty=false;attendanceDraftDirty=false;attendanceEditing=false;attendanceDraft.clear();loadTicket++;el('app-layout').classList.add('hidden');el('view-login').classList.remove('hidden');});
+ document.querySelectorAll('.nav-item').forEach(link=>link.addEventListener('click',e=>{e.preventDefault();navigateTo(link.dataset.route);}));
+ document.addEventListener('click',e=>{const p=e.target.closest('[data-profile]'),d=e.target.closest('[data-delete]'),s=e.target.closest('[data-subject]');if(p)navigateTo('student-profile',p.dataset.profile);if(d)removeStudent(d.dataset.delete);if(s){currentSubjectForMarks=s.dataset.subject;currentMarksCourse=normalizeCourse(snapshot.subjects.find(sub=>sub.id===s.dataset.subject)?.course);navigateTo('marks');}});
+ el('subjects-course-filter').addEventListener('change',renderSubjects);
+ el('marks-course-select').addEventListener('change',e=>{if(saving||(marksDirty&&!confirm('Discard unsaved marks?'))){e.target.value=currentMarksCourse;return;}currentMarksCourse=e.target.value;currentSubjectForMarks=null;renderMarks();});
+ document.addEventListener('click',e=>{const button=e.target.closest('[data-assign-subject]');if(button)assignSubjectCourse(button.dataset.assignSubject,button);});
+ el('marks-subject-select').addEventListener('change',e=>{if(saving||(marksDirty&&!confirm('Discard unsaved marks?'))){e.target.value=currentSubjectForMarks;return;}currentSubjectForMarks=e.target.value;buildMarksTable();});
+ for(const id of ['filter-student-search','filter-student-course','filter-student-sem'])el(id).addEventListener(id==='filter-student-search'?'input':'change',renderStudents);
+ el('form-add-student').addEventListener('submit',async e=>{e.preventDefault();const data={name:el('add-stu-name').value.trim(),rollNo:el('add-stu-roll').value.trim(),course:el('add-stu-course').value,semester:Number(el('add-stu-sem').value),email:el('add-stu-email').value.trim().toLowerCase(),status:'Active'};const validation=studentCsvValidation(data);if(validation)return showToast(validation,'error');const button=e.submitter;button.disabled=true;try{const students=await api.getStudents();if(students.some(s=>s.rollNo.trim().toLowerCase()===data.rollNo.toLowerCase()||String(s.email??'').trim().toLowerCase()===data.email))throw Error('That roll number or email already exists.');await api.addStudent(data);closeModal('modal-add-student');e.target.reset();showToast('Student saved.');await refreshData();}catch(error){showToast(error.message,'error');}finally{button.disabled=false;}});
+ el('form-add-subject').addEventListener('submit',async e=>{e.preventDefault();const data={name:el('add-sub-name').value.trim(),code:el('add-sub-code').value.trim(),course:el('add-sub-course').value,credits:Number(el('add-sub-credits').value),semester:Number(el('add-sub-sem').value)};if(!data.name||!data.code||!data.course)return showToast('Enter a subject name, code and course.','error');const button=e.submitter;button.disabled=true;try{const subjects=await api.getSubjects();if(subjects.some(s=>normalizeCourse(s.course)===data.course&&s.code.toLowerCase()===data.code.toLowerCase()))throw Error('Subject code already exists in this course.');await api.addSubject(data);closeModal('modal-add-subject');e.target.reset();showToast('Subject saved.');await refreshData();}catch(error){showToast(error.message,'error');}finally{button.disabled=false;}});
+ el('refresh-data').addEventListener('click',()=>navigateTo(currentRoute,currentProfile));
+ window.addEventListener('beforeunload',e=>{if(marksDirty||saving||studentImportBusy||attendanceDraftDirty||attendanceSaving){e.preventDefault();e.returnValue='';}});
+});
+
+    </script>
+</body>
+</html>
